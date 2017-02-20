@@ -107,7 +107,9 @@ const (
 )
 
 // TSL2561Driver is the gobot driver for the Adafruit Digital Luminosity/Lux/Light Sensor
+//
 // Datasheet: http://www.adafruit.com/datasheets/TSL2561.pdf
+//
 // Ported from the Adafruit driver at https://github.com/adafruit/Adafruit_TSL2561 by
 // K. Townsend
 type TSL2561Driver struct {
@@ -140,7 +142,7 @@ func NewTSL2561Driver(conn Connector, options ...func(Config)) *TSL2561Driver {
 		name:            gobot.DefaultName("TSL2561"),
 		connector:       conn,
 		Config:          NewConfig(),
-		integrationTime: tsl2561IntegrationTime402MS,
+		integrationTime: TSL2561IntegrationTime402MS,
 		gain:            TSL2561Gain1X,
 		autoGain:        false,
 	}
@@ -182,13 +184,13 @@ func WithTSL2561AutoGain(c Config) {
 	}
 }
 
-func withTSL2561IntegrationTime(iTime tsl2561IntegrationTime) func(Config) {
+func withTSL2561IntegrationTime(iTime TSL2561IntegrationTime) func(Config) {
 	return func(c Config) {
 		d, ok := c.(*TSL2561Driver)
 		if ok {
 			d.integrationTime = iTime
 		} else {
-			panic("Trying to set Auto Gain for non-TSL2561Driver")
+			panic("Trying to set integration time for non-TSL2561Driver")
 		}
 	}
 }
@@ -196,19 +198,19 @@ func withTSL2561IntegrationTime(iTime tsl2561IntegrationTime) func(Config) {
 // WithTSL2561IntegrationTime13MS option sets the TSL2561Driver integration time
 // to 13ms
 func WithTSL2561IntegrationTime13MS(c Config) {
-	withTSL2561IntegrationTime(tsl2561IntegrationTime13MS)(c)
+	withTSL2561IntegrationTime(TSL2561IntegrationTime13MS)(c)
 }
 
 // WithTSL2561IntegrationTime101MS option sets the TSL2561Driver integration time
 // to 101ms
 func WithTSL2561IntegrationTime101MS(c Config) {
-	withTSL2561IntegrationTime(tsl2561IntegrationTime101MS)(c)
+	withTSL2561IntegrationTime(TSL2561IntegrationTime101MS)(c)
 }
 
 // WithTSL2561IntegrationTime402MS option sets the TSL2561Driver integration time
 // to 402ms
 func WithTSL2561IntegrationTime402MS(c Config) {
-	withTSL2561IntegrationTime(tsl2561IntegrationTime402MS)(c)
+	withTSL2561IntegrationTime(TSL2561IntegrationTime402MS)(c)
 }
 
 // Name returns the name of the device.
