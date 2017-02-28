@@ -190,6 +190,7 @@ Gobot has a extensible system for connecting to hardware devices. The following 
 - [Bluetooth LE](https://www.bluetooth.com/what-is-bluetooth-technology/bluetooth-technology-basics/low-energy) <=> [Package](https://github.com/hybridgroup/gobot/tree/master/platforms/ble)
 - [C.H.I.P](http://www.nextthing.co/pages/chip) <=> [Package](https://github.com/hybridgroup/gobot/tree/master/platforms/chip)
 - [Digispark](http://digistump.com/products/1) <=> [Package](https://github.com/hybridgroup/gobot/tree/master/platforms/digispark)
+- [DragonBoard](https://developer.qualcomm.com/hardware/dragonboard-410c) <=> [Package](https://github.com/hybridgroup/gobot/tree/master/platforms/dragonboard)
 - [ESP8266](http://esp8266.net/) <=> [Package](https://github.com/hybridgroup/gobot/tree/master/platforms/firmata)
 - [Intel Edison](http://www.intel.com/content/www/us/en/do-it-yourself/edison.html) <=> [Package](https://github.com/hybridgroup/gobot/tree/master/platforms/intel-iot/edison)
 - [Intel Joule](http://intel.com/joule/getstarted) <=> [Package](https://github.com/hybridgroup/gobot/tree/master/platforms/intel-iot/joule)
@@ -251,17 +252,19 @@ drivers provided using the `gobot/drivers/i2c` package:
 	- Adafruit Motor Hat
 	- BlinkM LED
 	- BMP180 Barometric Pressure/Temperature/Altitude Sensor
+	- DRV2605L Haptic Controller
 	- Grove Digital Accelerometer
 	- Grove RGB LCD
 	- HMC6352 Compass
 	- JHD1313M1 LCD Display w/RGB Backlight
-	- LIDAR-Lite
 	- L3GD20H 3-Axis Gyroscope
+	- LIDAR-Lite
 	- MCP23017 Port Expander
 	- MMA7660 3-Axis Accelerometer
 	- MPL115A2 Barometer
 	- MPU6050 Accelerometer/Gyroscope
 	- SHT3x-D Temperature/Humidity
+	- TSL2561 Digital Luminosity/Lux/Light Sensor
 	- Wii Nunchuck Controller
 
 More platforms and drivers are coming soon...
@@ -309,5 +312,9 @@ For our contribution guidelines, please go to [https://github.com/hybridgroup/go
 ](https://github.com/hybridgroup/gobot/blob/master/CONTRIBUTING.md
 ).
 
+Gobot is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms. [You can read about it here](https://github.com/hybridgroup/gobot/tree/master/CODE_OF_CONDUCT.md).
+
 ## License
 Copyright (c) 2013-2017 The Hybrid Group. Licensed under the Apache 2.0 license.
+
+The Contributor Covenant is released under the Creative Commons Attribution 4.0 International Public License, which requires that attribution be included.
