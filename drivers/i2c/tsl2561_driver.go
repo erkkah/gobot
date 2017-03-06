@@ -84,16 +84,16 @@ const (
 	tsl2561RegisterChan1High       = 0x0F
 )
 
-// tsl2561IntegrationTime is the type of all valid integration time settings
-type tsl2561IntegrationTime int
+// TSL2561IntegrationTime is the type of all valid integration time settings
+type TSL2561IntegrationTime int
 
 const (
-	// tsl2561IntegrationTime13MS integration time 13ms
-	tsl2561IntegrationTime13MS tsl2561IntegrationTime = iota // 13.7ms
-	// tsl2561IntegrationTime101MS integration time 101ms
-	tsl2561IntegrationTime101MS // 101ms
-	// tsl2561IntegrationTime402MS integration time 402ms
-	tsl2561IntegrationTime402MS // 402ms
+	// TSL2561IntegrationTime13MS integration time 13ms
+	TSL2561IntegrationTime13MS TSL2561IntegrationTime = iota // 13.7ms
+	// TSL2561IntegrationTime101MS integration time 101ms
+	TSL2561IntegrationTime101MS // 101ms
+	// TSL2561IntegrationTime402MS integration time 402ms
+	TSL2561IntegrationTime402MS // 402ms
 )
 
 // TSL2561Gain is the type of all valid gain settings
@@ -119,7 +119,7 @@ type TSL2561Driver struct {
 	Config
 	autoGain        bool
 	gain            TSL2561Gain
-	integrationTime tsl2561IntegrationTime
+	integrationTime TSL2561IntegrationTime
 }
 
 // NewTSL2561Driver creates a new driver for the TSL2561 device.
@@ -268,7 +268,7 @@ func (d *TSL2561Driver) Halt() error {
 }
 
 // SetIntegrationTime sets integrations time for the TSL2561
-func (d *TSL2561Driver) SetIntegrationTime(time tsl2561IntegrationTime) error {
+func (d *TSL2561Driver) SetIntegrationTime(time TSL2561IntegrationTime) error {
 	if err := d.enable(); err != nil {
 		return err
 	}
@@ -310,13 +310,13 @@ func (d *TSL2561Driver) GetLuminocity() (broadband uint16, ir uint16, err error)
 	var hi, lo uint16
 
 	switch d.integrationTime {
-	case tsl2561IntegrationTime13MS:
+	case TSL2561IntegrationTime13MS:
 		hi = tsl2561AgcTHi13MS
 		lo = tsl2561AgcTLo13MS
-	case tsl2561IntegrationTime101MS:
+	case TSL2561IntegrationTime101MS:
 		hi = tsl2561AgcTLo101MS
 		lo = tsl2561AgcTHi101MS
-	case tsl2561IntegrationTime402MS:
+	case TSL2561IntegrationTime402MS:
 		hi = tsl2561AgcTHi402MS
 		lo = tsl2561AgcTLo402MS
 	}
@@ -375,13 +375,13 @@ func (d *TSL2561Driver) CalculateLux(broadband uint16, ir uint16) (lux uint32) {
 
 	// Set cliplevel and scaling based on integration time
 	switch d.integrationTime {
-	case tsl2561IntegrationTime13MS:
+	case TSL2561IntegrationTime13MS:
 		clipThreshold = tsl2561Clipping13MS
 		chScale = tsl2561LuxCHScaleTInt0
-	case tsl2561IntegrationTime101MS:
+	case TSL2561IntegrationTime101MS:
 		clipThreshold = tsl2561Clipping101MS
 		chScale = tsl2561LuxChScaleTInt1
-	case tsl2561IntegrationTime402MS:
+	case TSL2561IntegrationTime402MS:
 		clipThreshold = tsl2561Clipping402MS
 		chScale = (1 << tsl2561LuxChScale)
 	}
@@ -479,11 +479,11 @@ func (d *TSL2561Driver) getData() (broadband uint16, ir uint16, err error) {
 
 	// Wait x ms for ADC to complete
 	switch d.integrationTime {
-	case tsl2561IntegrationTime13MS:
+	case TSL2561IntegrationTime13MS:
 		time.Sleep(15 * time.Millisecond)
-	case tsl2561IntegrationTime101MS:
+	case TSL2561IntegrationTime101MS:
 		time.Sleep(120 * time.Millisecond)
-	case tsl2561IntegrationTime402MS:
+	case TSL2561IntegrationTime402MS:
 		time.Sleep(450 * time.Millisecond)
 	}
 
