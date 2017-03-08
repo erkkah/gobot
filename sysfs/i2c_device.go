@@ -10,9 +10,10 @@ import (
 
 const (
 	// ioctl signals
-	I2C_SLAVE = 0x0703
-	I2C_FUNCS = 0x0705
-	I2C_SMBUS = 0x0720
+	I2C_SLAVE       = 0x0703
+	I2C_SLAVE_FORCE = 0x0706
+	I2C_FUNCS       = 0x0705
+	I2C_SMBUS       = 0x0720
 	// Read/write markers
 	I2C_SMBUS_READ  = 1
 	I2C_SMBUS_WRITE = 0
@@ -96,7 +97,7 @@ func (d *i2cDevice) SetAddress(address int) (err error) {
 	_, _, errno := Syscall(
 		syscall.SYS_IOCTL,
 		d.file.Fd(),
-		I2C_SLAVE,
+		I2C_SLAVE_FORCE,
 		uintptr(byte(address)),
 	)
 
