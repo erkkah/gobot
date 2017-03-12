@@ -20,7 +20,7 @@ type pwmControl struct {
 }
 
 func exportPWM() (err error) {
-	exporter, err := os.OpenFile(pwmSysfsPath + "/export", os.O_WRONLY, 0666)
+	exporter, err := os.OpenFile(pwmSysfsPath+"/export", os.O_WRONLY, 0666)
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func exportPWM() (err error) {
 }
 
 func unexportPWM() (err error) {
-	exporter, err := os.OpenFile(pwmSysfsPath + "/unexport", os.O_WRONLY, 0666)
+	exporter, err := os.OpenFile(pwmSysfsPath+"/unexport", os.O_WRONLY, 0666)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,9 @@ func unexportPWM() (err error) {
 	return err
 }
 
-func (c *Adaptor) initPWM() (err error) {
+//	return fmt.Errorf("PWM is not available, check device tree setup")
+
+func (c *Adaptor) initPWM(pwmFrequency float64) (err error) {
 	const basePath = pwmSysfsPath + "/pwm0"
 
 	if _, err = os.Stat(basePath); err != nil {
@@ -70,16 +72,16 @@ func (c *Adaptor) initPWM() (err error) {
 		}
 	}()
 
-	if enableFile, err = os.OpenFile(basePath + "/enable", os.O_WRONLY, 0666); err != nil {
+	if enableFile, err = os.OpenFile(basePath+"/enable", os.O_WRONLY, 0666); err != nil {
 		return
 	}
-	if periodFile, err = os.OpenFile(basePath + "/period", os.O_WRONLY, 0666); err != nil {
+	if periodFile, err = os.OpenFile(basePath+"/period", os.O_WRONLY, 0666); err != nil {
 		return
 	}
-	if dutyFile, err = os.OpenFile(basePath + "/duty_cycle", os.O_WRONLY, 0666); err != nil {
+	if dutyFile, err = os.OpenFile(basePath+"/duty_cycle", os.O_WRONLY, 0666); err != nil {
 		return
 	}
-	if polarityFile, err = os.OpenFile(basePath + "/polarity", os.O_WRONLY, 0666); err != nil {
+	if polarityFile, err = os.OpenFile(basePath+"/polarity", os.O_WRONLY, 0666); err != nil {
 		return
 	}
 
@@ -94,6 +96,21 @@ func (c *Adaptor) initPWM() (err error) {
 	periodFile = nil
 	dutyFile = nil
 	polarityFile = nil
+
+	// Set up some sane PWM defaults to make servo functions
+	// work out of the box.
+	if err = c.pwm.setPolarityInverted(false); err != nil {
+		return
+	}
+	if err = c.pwm.setEnable(true); err != nil {
+		return
+	}
+	if err = c.pwm.setFrequency(pwmFrequency); err != nil {
+		return
+	}
+	if err = c.pwm.setDutycycle(0); err != nil {
+		return
+	}
 
 	return nil
 }
@@ -133,20 +150,18 @@ func (p *pwmControl) setPolarityInverted(invPolarity bool) error {
 		}
 		_, err := io.WriteString(p.polarityFile, polarityString)
 		return err
-	} else {
-		return fmt.Errorf("Cannot set PWM polarity when enabled")
 	}
+	return fmt.Errorf("Cannot set PWM polarity when enabled")
 }
 
 func (p *pwmControl) setDutycycle(duty float64) error {
 	p.duty = uint32((float64(p.periodNanos) * (duty / 100.0)))
 	if p.enabled {
-		fmt.Printf("PWM: Setting duty cycle to %v (%v)\n", p.duty, duty)
+		//fmt.Printf("PWM: Setting duty cycle to %v (%v)\n", p.duty, duty)
 		_, err := io.WriteString(p.dutyFile, fmt.Sprintf("%v", p.duty))
 		return err
-	} else {
-		return fmt.Errorf("Cannot set PWM duty cycle when disabled")
 	}
+	return fmt.Errorf("Cannot set PWM duty cycle when disabled")
 }
 
 func (p *pwmControl) setFrequency(freq float64) error {
@@ -155,9 +170,8 @@ func (p *pwmControl) setFrequency(freq float64) error {
 		p.periodNanos = periodNanos
 		_, err := io.WriteString(p.periodFile, fmt.Sprintf("%v", periodNanos))
 		return err
-	} else {
-		return fmt.Errorf("Cannot set PWM frequency when disabled")
 	}
+	return fmt.Errorf("Cannot set PWM frequency when disabled")
 }
 
 func (p *pwmControl) setEnable(enabled bool) error {
@@ -169,7 +183,6 @@ func (p *pwmControl) setEnable(enabled bool) error {
 		}
 		_, err := io.WriteString(p.enableFile, fmt.Sprintf("%v", enableVal))
 		return err
-	} else {
-		return nil
 	}
+	return nil
 }
