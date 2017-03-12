@@ -74,8 +74,6 @@ var fixedPins = map[string]int{
 	"UART1-RX": 196,
 }
 
-const pwmFrequency = 100
-
 // NewAdaptor creates a C.H.I.P. Adaptor
 func NewAdaptor() *Adaptor {
 	c := &Adaptor{
@@ -95,33 +93,16 @@ func (c *Adaptor) SetName(n string) { c.name = n }
 
 // Connect initializes the board
 func (c *Adaptor) Connect() (err error) {
-	err = c.initPWM()
-	if err != nil {
-		// Let adaptor proceed without PWM, might not be available in the current setup
-		fmt.Printf("Failed to init PWM: %v\n", err)
-	} else {
-		// Set up some sane PWM defaults to make servo functions
-		// work out of the box.
-		if err = c.pwm.setPolarityInverted(false); err != nil {
-			return
-		}
-		if err = c.pwm.setEnable(true); err != nil {
-			return
-		}
-		if err = c.pwm.setFrequency(pwmFrequency); err != nil {
-			return
-		}
-		if err = c.pwm.setDutycycle(0); err != nil {
-			return
-		}
-	}
 	return nil
 }
 
 // Finalize closes connection to board and pins
 func (c *Adaptor) Finalize() (err error) {
-	if e := c.closePWM(); e != nil {
-		err = multierror.Append(err, e)
+	if c.pwm != nil {
+		if e := c.closePWM(); e != nil {
+			err = multierror.Append(err, e)
+		}
+		c.pwm = nil
 	}
 	for _, pin := range c.digitalPins {
 		if pin != nil {
@@ -226,30 +207,36 @@ func (c *Adaptor) PwmWrite(pin string, val byte) (err error) {
 	if pin != "PWM0" {
 		return fmt.Errorf("PWM is only available on pin PWM0")
 	}
-	if c.pwm != nil {
-		val := gobot.ToScale(gobot.FromScale(float64(val), 0, 255), 0, 100)
-		return c.pwm.setDutycycle(val)
-	} else {
-		return fmt.Errorf("PWM is not available, check device tree setup")
+	if c.pwm == nil {
+		err = c.initPWM(pwmFrequency)
+		if err != nil {
+			return
+		}
 	}
+	duty := gobot.ToScale(gobot.FromScale(float64(val), 0, 255), 0, 100)
+	return c.pwm.setDutycycle(duty)
 }
+
+const pwmFrequency = 100
 
 // ServoWrite writes a servo signal to the specified pin
 func (c *Adaptor) ServoWrite(pin string, angle byte) (err error) {
 	if pin != "PWM0" {
 		return fmt.Errorf("Servo is only available on pin PWM0")
 	}
-	if c.pwm != nil {
-		// 0.5 ms => -90
-		// 1.5 ms =>   0
-		// 2.0 ms =>  90
-		const minDuty = 100 * 0.0005 * pwmFrequency
-		const maxDuty = 100 * 0.0020 * pwmFrequency
-		val := gobot.ToScale(gobot.FromScale(float64(angle), 0, 180), minDuty, maxDuty)
-		return c.pwm.setDutycycle(val)
-	} else {
-		return fmt.Errorf("PWM is not available, check device tree setup")
+	if c.pwm == nil {
+		err = c.initPWM(pwmFrequency)
+		if err != nil {
+			return
+		}
 	}
+	// 0.5 ms => -90
+	// 1.5 ms =>   0
+	// 2.0 ms =>  90
+	const minDuty = 100 * 0.0005 * pwmFrequency
+	const maxDuty = 100 * 0.0020 * pwmFrequency
+	duty := gobot.ToScale(gobot.FromScale(float64(angle), 0, 180), minDuty, maxDuty)
+	return c.pwm.setDutycycle(duty)
 }
 
 func getXIOBase() (baseAddr int, err error) {
