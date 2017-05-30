@@ -47,6 +47,10 @@ func (t *i2cTestAdaptor) Testi2cWriteImpl(f func([]byte) (int, error)) {
 	t.i2cWriteImpl = f
 }
 
+func (t *i2cTestAdaptor) SetForceMode(force bool) {
+	//
+}
+
 func (t *i2cTestAdaptor) Read(b []byte) (count int, err error) {
 	t.mtx.Lock()
 	defer t.mtx.Unlock()

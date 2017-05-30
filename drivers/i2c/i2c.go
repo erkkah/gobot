@@ -44,7 +44,10 @@ type Connector interface {
 // Implements sysfs.I2cOperations to talk to the device, wrapping the
 // calls in SetAddress to always target the specified device.
 // Provided by an Adaptor by implementing the I2cConnector interface.
-type Connection sysfs.I2cOperations
+type Connection interface {
+	sysfs.I2cOperations
+	SetForceMode(force bool)
+}
 
 type i2cConnection struct {
 	bus          sysfs.I2cDevice
