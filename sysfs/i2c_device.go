@@ -11,9 +11,10 @@ import (
 const (
 	// From  /usr/include/linux/i2c-dev.h:
 	// ioctl signals
-	I2C_SLAVE = 0x0703
-	I2C_FUNCS = 0x0705
-	I2C_SMBUS = 0x0720
+	I2C_SLAVE       = 0x0703
+	I2C_SLAVE_FORCE = 0x0706
+	I2C_FUNCS       = 0x0705
+	I2C_SMBUS       = 0x0720
 	// Read/write markers
 	I2C_SMBUS_READ  = 1
 	I2C_SMBUS_WRITE = 0
@@ -60,7 +61,7 @@ type I2cOperations interface {
 // I2cDevice is the interface to a specific i2c bus
 type I2cDevice interface {
 	I2cOperations
-	SetAddress(int) error
+	SetAddress(address int, force... bool) error
 }
 
 type i2cDevice struct {
@@ -97,11 +98,17 @@ func (d *i2cDevice) queryFunctionality() (err error) {
 	return
 }
 
-func (d *i2cDevice) SetAddress(address int) (err error) {
+func (d *i2cDevice) SetAddress(address int, force... bool) (err error) {
+
+	var cmd uintptr = I2C_SLAVE
+	if len(force) > 0 && force[0] {
+		cmd = I2C_SLAVE_FORCE
+	}
+
 	_, _, errno := Syscall(
 		syscall.SYS_IOCTL,
 		d.file.Fd(),
-		I2C_SLAVE,
+		cmd,
 		uintptr(byte(address)),
 	)
 

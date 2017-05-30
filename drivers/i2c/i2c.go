@@ -47,15 +47,21 @@ type Connector interface {
 type Connection sysfs.I2cOperations
 
 type i2cConnection struct {
-	bus     sysfs.I2cDevice
-	address int
-	mutex   *sync.Mutex
+	bus          sysfs.I2cDevice
+	address      int
+	forceAddress bool
+	mutex        *sync.Mutex
 }
 
 // NewConnection creates and returns a new connection to a specific
 // i2c device on a bus and address.
 func NewConnection(bus sysfs.I2cDevice, address int) (connection *i2cConnection) {
-	return &i2cConnection{bus: bus, address: address, mutex: &sync.Mutex{}}
+	return &i2cConnection{bus: bus, address: address, forceAddress: false, mutex: &sync.Mutex{}}
+}
+
+// Set 'force' mode to force access to busy i2c devices.
+func (c *i2cConnection) SetForceMode(force bool) {
+	c.forceAddress = force
 }
 
 // Read data from an i2c device.
@@ -63,7 +69,7 @@ func (c *i2cConnection) Read(data []byte) (read int, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err = c.bus.SetAddress(c.address); err != nil {
+	if err = c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return 0, err
 	}
 	read, err = c.bus.Read(data)
@@ -75,7 +81,7 @@ func (c *i2cConnection) Write(data []byte) (written int, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err = c.bus.SetAddress(c.address); err != nil {
+	if err = c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return 0, err
 	}
 	written, err = c.bus.Write(data)
@@ -95,7 +101,7 @@ func (c *i2cConnection) ReadByte() (val byte, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err := c.bus.SetAddress(c.address); err != nil {
+	if err := c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return 0, err
 	}
 	return c.bus.ReadByte()
@@ -106,7 +112,7 @@ func (c *i2cConnection) ReadByteData(reg uint8) (val uint8, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err := c.bus.SetAddress(c.address); err != nil {
+	if err := c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return 0, err
 	}
 	return c.bus.ReadByteData(reg)
@@ -117,7 +123,7 @@ func (c *i2cConnection) ReadWordData(reg uint8) (val uint16, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err := c.bus.SetAddress(c.address); err != nil {
+	if err := c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return 0, err
 	}
 	return c.bus.ReadWordData(reg)
@@ -128,7 +134,7 @@ func (c *i2cConnection) WriteByte(val byte) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err := c.bus.SetAddress(c.address); err != nil {
+	if err := c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return err
 	}
 	return c.bus.WriteByte(val)
@@ -139,7 +145,7 @@ func (c *i2cConnection) WriteByteData(reg uint8, val uint8) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err := c.bus.SetAddress(c.address); err != nil {
+	if err := c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return err
 	}
 	return c.bus.WriteByteData(reg, val)
@@ -150,7 +156,7 @@ func (c *i2cConnection) WriteWordData(reg uint8, val uint16) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err := c.bus.SetAddress(c.address); err != nil {
+	if err := c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return err
 	}
 	return c.bus.WriteWordData(reg, val)
@@ -161,7 +167,7 @@ func (c *i2cConnection) WriteBlockData(reg uint8, b []byte) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if err := c.bus.SetAddress(c.address); err != nil {
+	if err := c.bus.SetAddress(c.address, c.forceAddress); err != nil {
 		return err
 	}
 	return c.bus.WriteBlockData(reg, b)
