@@ -81,7 +81,8 @@ func (p *PWMPin) enabled() (enabled bool, err error) {
 		return false, nil
 	}
 
-	val, e := strconv.Atoi(string(buf))
+	v := bytes.TrimRight(buf, "\n")
+	val, e := strconv.Atoi(string(v))
 	return uint32(val) != 0, e
 }
 
