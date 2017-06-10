@@ -152,6 +152,7 @@ func (b *Driver) adaptor() ble.BLEConnector {
 
 // Start tells driver to get ready to do work
 func (b *Driver) Start() (err error) {
+	b.adaptor().WithoutReponses(true)
 	b.Init()
 	b.FlatTrim()
 	b.StartPcmd()
@@ -179,43 +180,7 @@ func (b *Driver) Init() (err error) {
 
 	// subscribe to flying status notifications
 	b.adaptor().Subscribe(flightStatusCharacteristic, func(data []byte, e error) {
-		if len(data) < 5 {
-			// ignore, just a sync
-			return
-		}
-
-		b.Publish(FlightStatus, data[4])
-
-		if data[4] == flatTrimChanged {
-			b.Publish(FlatTrimChange, true)
-		}
-		if data[4] == flyingStateChanged {
-			switch data[6] {
-			case flyingStateLanded:
-				if b.flying {
-					b.flying = false
-					b.Publish(Landed, true)
-				}
-			case flyingStateTakeoff:
-				b.Publish(Takeoff, true)
-			case flyingStateHovering:
-				if !b.flying {
-					b.flying = true
-					b.Publish(Hovering, true)
-				}
-			case flyingStateFlying:
-				if !b.flying {
-					b.flying = true
-					b.Publish(Flying, true)
-				}
-			case flyingStateLanding:
-				b.Publish(Landing, true)
-			case flyingStateEmergency:
-				b.Publish(Emergency, true)
-			case flyingStateRolling:
-				b.Publish(Rolling, true)
-			}
-		}
+		b.processFlightStatus(data)
 	})
 
 	return
@@ -495,6 +460,47 @@ func (b *Driver) generatePcmd() *bytes.Buffer {
 	binary.Write(cmd, binary.LittleEndian, int16(0))
 
 	return cmd
+}
+
+func (b *Driver) processFlightStatus(data []byte) {
+	if len(data) < 5 {
+		// ignore, just a sync
+		return
+	}
+
+	b.Publish(FlightStatus, data[4])
+
+	switch data[4] {
+	case flatTrimChanged:
+		b.Publish(FlatTrimChange, true)
+
+	case flyingStateChanged:
+		switch data[6] {
+		case flyingStateLanded:
+			if b.flying {
+				b.flying = false
+				b.Publish(Landed, true)
+			}
+		case flyingStateTakeoff:
+			b.Publish(Takeoff, true)
+		case flyingStateHovering:
+			if !b.flying {
+				b.flying = true
+				b.Publish(Hovering, true)
+			}
+		case flyingStateFlying:
+			if !b.flying {
+				b.flying = true
+				b.Publish(Flying, true)
+			}
+		case flyingStateLanding:
+			b.Publish(Landing, true)
+		case flyingStateEmergency:
+			b.Publish(Emergency, true)
+		case flyingStateRolling:
+			b.Publish(Rolling, true)
+		}
+	}
 }
 
 func validatePitch(val int) int {

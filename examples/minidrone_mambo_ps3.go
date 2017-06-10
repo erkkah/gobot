@@ -5,15 +5,15 @@
 /*
  How to setup
  You must be using a PS3 or compatible controller, along with
- any of the Parrot Minidrone drones to run this example.
+ one of the Parrot Mambo drones to run this example.
 
  You run the Go program on your computer and communicate
- wirelessly with the Parrot Minidrone.
+ wirelessly with the Mambo.
 
  How to run
  Pass the Bluetooth name or address as first param:
 
-	go run examples/minidrone_ps3.go "Travis_1234"
+	go run examples/minidrone_mambo_ps3.go "Mambo_1234"
 
  NOTE: sudo is required to use BLE in Linux
 */
@@ -55,19 +55,26 @@ func main() {
 		rightX.Store(float64(0.0))
 		rightY.Store(float64(0.0))
 
-		recording := false
+		clawOpen := false
 
 		stick.On(joystick.CirclePress, func(data interface{}) {
-			if recording {
-				drone.StopRecording()
+			if clawOpen {
+				drone.ClawControl(0, minidrone.ClawClosed)
+				clawOpen = false
 			} else {
-				drone.StartRecording()
+				drone.ClawControl(0, minidrone.ClawOpen)
+				clawOpen = true
 			}
-			recording = !recording
 		})
 
-		stick.On(joystick.SquarePress, func(data interface{}) {
-			drone.Stop()
+		stick.On(joystick.R2Press, func(data interface{}) {
+			if clawOpen {
+				drone.ClawControl(0, minidrone.ClawClosed)
+				clawOpen = false
+			} else {
+				drone.ClawControl(0, minidrone.ClawOpen)
+				clawOpen = true
+			}
 		})
 
 		stick.On(joystick.TrianglePress, func(data interface{}) {

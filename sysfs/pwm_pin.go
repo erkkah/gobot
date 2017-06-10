@@ -39,7 +39,6 @@ type PWMPinnerProvider interface {
 type PWMPin struct {
 	pin     string
 	Path    string
-	enabled bool
 	write   func(path string, data []byte) (i int, err error)
 	read    func(path string) ([]byte, error)
 }
@@ -48,7 +47,6 @@ type PWMPin struct {
 func NewPWMPin(pin int) *PWMPin {
 	return &PWMPin{
 		pin:     strconv.Itoa(pin),
-		enabled: false,
 		Path:    "/sys/class/pwm/pwmchip0",
 		read:    readPwmFile,
 		write:   writePwmFile}
@@ -74,10 +72,27 @@ func (p *PWMPin) Unexport() (err error) {
 	return
 }
 
+func (p *PWMPin) enabled() (enabled bool, err error) {
+	buf, err := p.read(p.pwmEnablePath())
+	if err != nil {
+		return
+	}
+	if len(buf) == 0 {
+		return false, nil
+	}
+
+	val, e := strconv.Atoi(string(buf))
+	return uint32(val) != 0, e
+}
+
 // Enable writes value to pwm enable path
 func (p *PWMPin) Enable(enable bool) (err error) {
-	if p.enabled != enable {
-		p.enabled = enable
+	isEnabled, err := p.enabled()
+	if err != nil {
+		return
+	}
+
+	if isEnabled != enable {
 		enableVal := 0
 		if enable {
 			enableVal = 1
@@ -102,7 +117,12 @@ func (p *PWMPin) Polarity() (polarity string, err error) {
 
 // InvertPolarity writes value to pwm polarity path
 func (p *PWMPin) InvertPolarity(invert bool) (err error) {
-	if !p.enabled {
+	isEnabled, err := p.enabled()
+	if err != nil {
+		return
+	}
+
+	if !isEnabled {
 		polarity := "normal"
 		if invert {
 			polarity = "inverted"
